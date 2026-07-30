@@ -9,7 +9,8 @@ utility services. Each subfolder is an independent Compose project.
 A custom `llama-server:gtx1060` image (built from the local
 `Dockerfile`) running [llama.cpp](https://github.com/ggml-org/llama.cpp)'s
 `llama-server`, compiled for a GTX 1060 (CUDA arch `sm_61`). Serves an
-OpenAI-compatible API on port `7000`.
+OpenAI-compatible API on port `7000`. See [llama/README.md](llama/README.md)
+for host prerequisites (NVIDIA driver, container toolkit) before building.
 
 - `Dockerfile` — multi-stage build: compiles `llama-server` with CUDA support,
   then copies it into a slim CUDA runtime image.

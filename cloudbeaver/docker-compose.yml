@@ -1,0 +1,10 @@
+services:
+  cloudbeaver-ee:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    ports:
+      - "8978:8978"
+    volumes:
+      - /var/cloudbeaver/workspace:/opt/cloudbeaver/workspace
+    stdin_open: true
+    tty: true

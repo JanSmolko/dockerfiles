@@ -1,0 +1,54 @@
+services:
+  llama-server-qwen2_5-coder-7b-instruct-q4_k_m:
+    image: llama-server:gtx1060
+    container_name: llama-server-qwen2_5-coder-7b-instruct-q4_k_m
+    restart: unless-stopped
+    ports:
+      - "7000:8080"
+    environment:
+      - LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+    tmpfs:
+      - /usr/local/cuda/compat
+    volumes:
+      - ./models:/models
+    command:
+      - "-m"
+      - "/models/qwen2.5-coder-7b-instruct-q4_K_M.gguf" # Switched to 7B Instruct
+      - "--jinja"
+      - "-c"
+      - "32768"        # Expanded context window to 32k for full file workflows
+      - "-fa"          # FIXED: Flash Attention flag cleanly enabled
+      - "-ctk"
+      - "q8_0"         # 8-bit Key cache quantization to preserve VRAM
+      - "-ctv"
+      - "q8_0"         # 8-bit Value cache quantization to preserve VRAM
+      - "-ngl"
+      - "16"           # Offload only 16 layers so the 32k KV cache fits in VRAM
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    environment:
+      - OPENAI_API_BASE_URL=http://llama-server-qwen2_5-coder-7b-instruct-q4_k_m:8080/v1
+      - OPENAI_API_KEY=dummy
+    volumes:
+      - open-webui_data:/app/backend/data
+    depends_on:
+      - llama-server-qwen2_5-coder-7b-instruct-q4_k_m
+
+volumes:
+  open-webui_data:

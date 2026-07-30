@@ -1,0 +1,22 @@
+# Secrets / environment files
+.env
+*.env
+!.env.example
+
+# Model weights (multi-GB binaries, not source)
+llama/models/
+
+# Backup / generated files
+*.bak
+*.orig
+
+# Compose local overrides
+docker-compose.override.yml
+
+# OS / editor cruft
+.DS_Store
+.idea/
+.vscode/
+
+# Logs
+*.log

@@ -1,0 +1,45 @@
+services:
+  llama-server-qwen2_5-coder-7b-instruct-q4_k_m:
+    image: llama-server:gtx1060
+    container_name: llama-server-qwen2_5-coder-7b-instruct-q4_k_m
+    restart: unless-stopped
+    ipc: host
+    ports:
+      - "7000:8080"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    tmpfs:
+      - /usr/local/cuda/compat
+    volumes:
+      - ./models:/models
+    command:
+      - "-m"
+      - "/models/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf"
+      - "--alias"
+      - "Qwen2.5 Coder 7B"
+      - "--jinja"
+      - "-c"
+      - "4000"        # Expanded context window to 16,384 tokens
+      - "-ctk"
+      - "q8_0"         # 8-bit Key cache quantization
+      - "-ctv"
+      - "q8_0"         # 8-bit Value cache quantization
+      - "-ngl"
+      - "99"           # Offload all layers to GPU
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, utility, compute]
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    external: true

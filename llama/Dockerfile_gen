@@ -1,0 +1,41 @@
+FROM nvidia/cuda:12.2.2-devel-ubuntu22.04 AS builder
+
+RUN apt-get update && apt-get install -y git build-essential cmake
+
+# 1. Create the missing libcuda.so.1 stub symlink for the linker
+RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1
+
+# 2. Expose the CUDA stubs directory to the linker during build
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}
+ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}
+
+WORKDIR /app
+RUN git clone https://github.com/ggml-org/llama.cpp.git .
+
+# 3. Target GTX 1060 Pascal architecture (sm_61)
+RUN cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=61
+RUN cmake --build build --config Release -j$(nproc) --target llama-server
+
+# Final lightweight runtime container (Using standard, valid runtime tag)
+FROM nvidia/cuda:12.2.2-runtime-ubuntu22.04
+WORKDIR /app
+
+# Install runtime dependencies (OpenMP)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the llama-server binaries and libs
+COPY --from=builder /app/build/ /app/build/
+
+# FIX FOR LACK OF CUBLAS: Copy the precise math libraries from the builder stage 
+# to guarantee it works on machines without dynamic injection tools.
+COPY --from=builder /usr/local/cuda/lib64/libcublas.so* /usr/local/cuda/lib64/
+COPY --from=builder /usr/local/cuda/lib64/libcudart.so* /usr/local/cuda/lib64/
+
+# Update LD_LIBRARY_PATH to find everything safely
+ENV LD_LIBRARY_PATH=/app/build/bin:/app/build/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app/build/bin/llama-server"]

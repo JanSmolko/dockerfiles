@@ -1,0 +1,11 @@
+pia/*
+!pia/script.sh
+qbit-nox/*
+!qbit-nox/qBittorrent
+qbit-nox/qBittorrent/*
+!qbit-nox/qBittorrent/config
+qbit-nox/qBittorrent/config/*
+!qbit-nox/qBittorrent/config/qBittorrent.conf
+
+
+

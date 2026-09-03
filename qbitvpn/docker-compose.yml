@@ -1,0 +1,54 @@
+services:
+  vpn:
+    image: thrnz/docker-wireguard-pia
+    container_name: qbit-wireguard-pia
+    volumes:
+     - /home/jansmolko/docker/qbitvpn/pia/pia:/pia
+     - /home/jansmolko/docker/qbitvpn/pia/pia-shared:/pia-shared
+     - /home/jansmolko/docker/qbitvpn/pia/script.sh:/script.sh
+    cap_add:
+     - NET_ADMIN
+    environment:
+     - LOC=${PIA_LOC:-swiss}
+     - USER=${PIA_USER}
+     - PASS=${PIA_PASS}
+     - KEEPALIVE=25
+     - PORT_FORWARDING=1
+     - PORT_SCRIPT=/script.sh
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.default.disable_ipv6=1
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.lo.disable_ipv6=1
+    networks:
+      - vpn
+
+  qbittorrent:
+    image: qbittorrentofficial/qbittorrent-nox:latest
+    container_name: qbit-nox
+    network_mode: "service:vpn"
+    environment:
+      - PUID=1002
+      - PGID=1002
+      - TZ=Europe/London
+      - QBT_WEBUI_PORT=8085
+    volumes:
+      - /home/jansmolko/docker/qbitvpn/qbit-nox:/config
+      - /home/jansmolko/Downloads/qbittorrent:/downloads
+    depends_on:
+      - vpn
+    restart: always
+
+  # Expose the webui port using socat
+  reverse-proxy:
+    image: alpine/socat
+    container_name: qbit-proxy
+    depends_on:
+      - vpn
+    command: "TCP-LISTEN:8085,fork,reuseaddr TCP:vpn:8085"
+    ports:
+      - 8085:8085
+    networks:
+      - vpn
+networks:
+  vpn:

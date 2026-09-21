@@ -4,6 +4,8 @@ services:
     container_name: cloudbeaver
     ports:
       - "8978:8978"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - /var/cloudbeaver/workspace:/opt/cloudbeaver/workspace
     stdin_open: true

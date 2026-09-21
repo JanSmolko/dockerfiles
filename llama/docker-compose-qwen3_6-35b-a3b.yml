@@ -1,15 +1,11 @@
-# NOTE: this model does not reliably emit tool_calls via llama-server's jinja parser
-# (verified 2026-09-21) - Cursor agent/file-access features will NOT work.
-# Use docker-compose-qwen3_6-35b-a3b.yml for agentic/file-access use in Cursor.
-
-name: llama-qwen2-5-coder-7b
+name: llama-qwen3-6-35b-a3b
 
 services:
   llama-server:
     image: llama-server:gtx1060
     container_name: llama-server
     labels:
-      - "llm.model=Qwen2.5 Coder 7B"
+      - "llm.model=qwen36-35b-a3b"
     restart: unless-stopped
     ipc: host
     ports:
@@ -18,24 +14,43 @@ services:
       - CUDA_VISIBLE_DEVICES=0
     tmpfs:
       - /usr/local/cuda/compat
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     volumes:
       - ./models:/models
     command:
       - "-m"
-      - "/models/Qwen2.5-Coder-7B-Instruct-IQ4_XS.gguf"
+      - "/models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
       - "--alias"
       - "local-model"
-      - "--jinja"
+      - "-c"
+      - "131072"
+      - "-ngl"
+      - "999"
+      - "--n-cpu-moe"
+      - "999"
       - "-np"
       - "1"
-      - "-c"
-      - "24576"        # Expanded context window
+      - "-fa"
+      - "auto"
+      - "-t"
+      - "4"
+      - "--temperature"
+      - "0.2"
       - "-ctk"
       - "q8_0"         # 8-bit Key cache quantization
       - "-ctv"
       - "q8_0"         # 8-bit Value cache quantization
-      - "-ngl"
-      - "99"           # Offload all layers to GPU
+      - "--jinja"
+      - "--chat-template-file"
+      - "/models/Qwen3.6-35B-A3B-UD-Q4_K_M.jinja"
+      - "--load-mode"
+      - "mlock"
+      - "--reasoning-preserve"
+      - "-lv"
+      - "3"
       - "--host"
       - "0.0.0.0"
       - "--port"

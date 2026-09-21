@@ -1,7 +1,15 @@
+# NOTE: this model does not reliably emit tool_calls via llama-server's jinja parser
+# (verified 2026-09-21) - Cursor agent/file-access features will NOT work.
+# Use docker-compose-qwen3_6-35b-a3b.yml for agentic/file-access use in Cursor.
+
+name: llama-qwen2-5-coder-3b
+
 services:
-  llama-server-qwen2_5-coder-3b-instruct-q4_k_m:
+  llama-server:
     image: llama-server:gtx1060
-    container_name: llama-server-qwen2_5-coder-3b-instruct-q4_k_m
+    container_name: llama-server
+    labels:
+      - "llm.model=Qwen 2.5 Coder 3B"
     restart: unless-stopped
     ipc: host
     ports:
@@ -16,10 +24,10 @@ services:
       - "-m"
       - "/models/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf"
       - "--alias"
-      - "Qwen 2.5 Coder 3B"
+      - "local-model"
       - "--jinja"
       - "-c"
-      - "16384"        # Expanded context window to 16,384 tokens
+      - "32768"        # Expanded context window to 32,768 tokens
       - "-ctk"
       - "q8_0"         # 8-bit Key cache quantization
       - "-ctv"

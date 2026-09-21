@@ -13,6 +13,9 @@ llama/models/
 # Compose local overrides
 docker-compose.override.yml
 
+# Stray non-containerized qBittorrent runtime state (socket, lockfile, resume data)
+/config/
+
 # OS / editor cruft
 .DS_Store
 .idea/

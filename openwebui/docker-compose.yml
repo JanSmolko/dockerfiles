@@ -6,8 +6,8 @@ services:
     ports:
       - "3000:8080"
     environment:
-      - OPENAI_API_BASE_URLS=http://llama-server-qwen2_5-coder-3b-instruct-q4_k_m:8080/v1;http://llama-server-qwen2_5-coder-7b-instruct-q4_k_m:8080/v1
-      - OPENAI_API_KEYS=dummy
+      - OPENAI_API_BASE_URL=http://llama-server:8080/v1
+      - OPENAI_API_KEY=dummy
     volumes:
       - open-webui_data:/app/backend/data
     networks:

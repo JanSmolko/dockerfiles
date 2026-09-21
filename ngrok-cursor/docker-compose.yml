@@ -1,0 +1,9 @@
+services:
+  ngrok-cursor:
+    image: ngrok/ngrok:latest
+    container_name: ngrok-cursor
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command: http --url=https://lunchtime-preformed-unadvised.ngrok-free.dev 7000

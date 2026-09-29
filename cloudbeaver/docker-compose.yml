@@ -2,6 +2,7 @@ services:
   cloudbeaver-ee:
     image: dbeaver/cloudbeaver:latest
     container_name: cloudbeaver
+    restart: unless-stopped
     ports:
       - "8978:8978"
     extra_hosts:
